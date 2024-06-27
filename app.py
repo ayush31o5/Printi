@@ -93,9 +93,10 @@ def upload_file():
     else:
         return "File type not allowed"
 
-@app.route('/payment/<int:amount>')
-def payment(amount):
-    return render_template('payment.html', amount=amount)
+@app.route('/payment/<int:amount>/<string:printer_name>/<int:num_pages>')
+def payment(amount, printer_name, num_pages):
+    return render_template('payment.html', amount=amount, printer_name=printer_name, num_pages=num_pages)
+
 
 @app.route('/create_order', methods=['POST'])
 def create_order():
