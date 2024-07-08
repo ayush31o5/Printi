@@ -1,60 +1,26 @@
-<!-- payment.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Details</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Payment</title>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Payment Details</h1>
-        <div class="payment-details">
-            <p><strong>Printer Name:</strong> {{ printer_name }}</p>
-            <p><strong>Number of Pages:</strong> {{ num_pages }}</p>
-            <p><strong>Amount to be Paid:</strong> ₹ {{ amount / 100 }}</p>
-        </div>
-        <button id="rzp-button">Pay with Razorpay</button>
-    </div>
+    <h2>Payment Details</h2>
+    <p>Printer: {{ printer_name }}</p>
+    <p>Number of Pages: {{ num_pages }}</p>
+    <p>Amount to be paid: ₹{{ amount / 100 }}</p>
 
-    <!-- Razorpay payment button -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script>
-        var options = {
-            "key": "YOUR_RAZORPAY_KEY",
-            "amount": amount,
-            "currency": "INR",
-            "name": "Printer Project",
-            "description": "Document Printing Service",
-            "image": "https://yourlogo.com/logo.png",
-            "order_id": "{{ order_id }}",  // Replace with your actual order_id
-            "handler": function (response) {
-                // Handle successful payment here
-                alert('Payment successful! Payment ID: ' + response.razorpay_payment_id);
-            },
-            "prefill": {
-                "name": "User Name",
-                "email": "user@example.com"
-            },
-            "theme": {
-                "color": "#007bff"
-            }
-        };
-
-        var rzp1 = new Razorpay(options);
-        rzp1.on('payment.failed', function (response) {
-            // Handle failed payment here
-            alert('Payment failed! Error: ' + response.error.description);
-        });
-
-        document.getElementById('rzp-button').onclick = function (e) {
-            rzp1.open();
-            e.preventDefault();
-        }
-    </script>
+    <form action="/payment_success" method="POST">
+        <script src="https://checkout.razorpay.com/v1/checkout.js" data-key="rzp_test_HlPtr7sPat9Rkd"
+            data-amount="{{ amount }}" data-currency="INR" data-order_id="{{ order_id }}"
+            data-buttontext="Pay with Razorpay" data-name="Printer Project" data-description="Document Printing Service"
+            data-image="https://yourlogo.com/logo.png" data-prefill.name="User Name"
+            data-prefill.email="user@example.com" data-theme.color="#007bff"></script>
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+    </form>
 </body>
 
 </html>
