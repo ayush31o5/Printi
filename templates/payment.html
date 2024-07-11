@@ -1,26 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
 <body>
-    <h2>Payment Details</h2>
-    <p>Printer: {{ printer_name }}</p>
-    <p>Number of Pages: {{ num_pages }}</p>
-    <p>Amount to be paid: ₹{{ amount / 100 }}</p>
-
-    <form action="/payment_success" method="POST">
-        <script src="https://checkout.razorpay.com/v1/checkout.js" data-key="rzp_test_HlPtr7sPat9Rkd"
-            data-amount="{{ amount }}" data-currency="INR" data-order_id="{{ order_id }}"
-            data-buttontext="Pay with Razorpay" data-name="Printer Project" data-description="Document Printing Service"
-            data-image="https://yourlogo.com/logo.png" data-prefill.name="User Name"
-            data-prefill.email="user@example.com" data-theme.color="#007bff"></script>
+    <h1>Payment Page</h1>
+    <p>Amount: {{ amount }} paise</p>
+    <form id="payment-form" action="{{ url_for('verify_payment') }}" method="POST" style="display:none;">
         <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
         <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
         <input type="hidden" name="razorpay_signature" id="razorpay_signature">
     </form>
+    <button id="pay-button">Pay Now</button>
+
+    <script>
+        document.getElementById('pay-button').onclick = function (e) {
+            var options = {
+                "key": "{{ razorpay_key }}",
+                "amount": "{{ amount }}", // Amount in paise
+                "currency": "INR",
+                "name": "Your Company Name",
+                "description": "Test Transaction",
+                "handler": function (response) {
+                    document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                    document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+                    document.getElementById('razorpay_signature').value = response.razorpay_signature;
+                    document.getElementById('payment-form').submit();
+                },
+                "prefill": {
+                    "name": "Customer Name",
+                    "email": "customer@example.com",
+                    "contact": "9999999999"
+                },
+                "theme": {
+                    "color": "#3399cc"
+                }
+            };
+            var rzp1 = new Razorpay(options);
+            rzp1.open();
+            e.preventDefault();
+        }
+    </script>
 </body>
 
 </html>

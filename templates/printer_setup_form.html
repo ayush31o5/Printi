@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printer Setup Form</title>
+</head>
+
+<body>
+    <h1>Printer Setup</h1>
+    <form action="{{ url_for('printer_setup') }}" method="POST">
+        <label for="ssid">SSID (Network Name):</label><br>
+        <input type="text" id="ssid" name="ssid" required><br><br>
+
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+
+        <label for="auth_type">Authentication Type:</label><br>
+        <select id="auth_type" name="auth_type" required>
+            <option value="WPA">WPA</option>
+            <option value="WPA2">WPA2</option>
+        </select><br><br>
+
+        <input type="submit" value="Generate QR Code">
+    </form>
+</body>
+
+</html>

@@ -1,13 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Payment Confirmation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-    <h2>Payment Successful</h2>
-    <p>Printer: {{ printer_name }}</p>
+    <h1>Confirmation</h1>
+    <p>Printer Name: {{ printer_name }}</p>
     <p>Number of Pages: {{ num_pages }}</p>
     <p>Amount Paid: ₹{{ amount / 100 }}</p>
     <p>Your document is being printed.</p>
