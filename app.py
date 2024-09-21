@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 import hmac
 import hashlib
+import bluetooth  # For Bluetooth discovery
 
 load_dotenv()
 
@@ -24,10 +25,12 @@ def home():
 def printer_setup():
     if request.method == 'POST':
         ssid = request.form['ssid']
-        password = request.form['password']
+        password = request.form.get('password', '')  # Optional password for Wi-Fi Direct
         auth_type = request.form['auth_type']
+        bluetooth_mac = request.form.get('bluetooth_mac', '')
 
-        wifi_info = f"WIFI:T:{auth_type};S:{ssid};P:{password};;"
+        # Wi-Fi Direct QR Code Format
+        wifi_info = f"WIFI:T:{auth_type};S:{ssid};P:{password};H:true;;"
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -35,8 +38,13 @@ def printer_setup():
             border=4,
         )
         qr.add_data(wifi_info)
-        qr.make(fit=True)
 
+        # If Bluetooth info is provided, add it to QR Code
+        if bluetooth_mac:
+            bluetooth_info = f"BT:MAC:{bluetooth_mac};NAME:Printer;;"
+            qr.add_data(bluetooth_info)
+
+        qr.make(fit=True)
         img = qr.make_image(fill='black', back_color='white')
         buffer = BytesIO()
         img.save(buffer, format="PNG")
@@ -48,7 +56,7 @@ def printer_setup():
 
 @app.route('/connect_printer')
 def index():
-    printers = get_printers()
+    printers = get_printers()  # This should detect printers via Wi-Fi Direct/Bluetooth
     return render_template('index.html', printers=printers)
 
 @app.route('/upload', methods=['POST'])
