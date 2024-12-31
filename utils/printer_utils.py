@@ -1,6 +1,7 @@
 import os
 import platform
 import subprocess
+from bleak import BleakClient
 
 def get_printers():
     system = platform.system()
@@ -35,4 +36,11 @@ def send_to_printer(filepath, printer_name):
         except Exception as e:
             raise RuntimeError(f"Failed to print document on Linux: {e}")
     else:
-        raise NotImplementedError("Printing is not supported on this platform.")
+        raise Exception("Unsupported platform for printing.")
+
+async def connect_bluetooth_printer(mac_address):
+    async with BleakClient(mac_address) as client:
+        if await client.is_connected():
+            print(f"Connected to {mac_address}")
+        else:
+            raise Exception(f"Failed to connect to Bluetooth device {mac_address}")

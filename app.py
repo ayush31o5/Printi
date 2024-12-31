@@ -9,7 +9,9 @@ from dotenv import load_dotenv
 import os
 import hmac
 import hashlib
-import bluetooth  # For Bluetooth discovery
+from bleak import BleakScanner, BleakClient
+import asyncio
+from database import add_printer, get_all_printers  # Import MongoDB functions
 
 load_dotenv()
 
@@ -50,14 +52,29 @@ def printer_setup():
         img.save(buffer, format="PNG")
         qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
+        # Save to MongoDB
+        printer_info = {
+            'ssid': ssid,
+            'password': password,
+            'auth_type': auth_type,
+            'bluetooth_mac': bluetooth_mac,
+            'qr_code': qr_base64
+        }
+        add_printer(printer_info)
+
         return render_template('qr_code.html', qr_base64=qr_base64)
 
     return render_template('printer_setup_form.html')
 
 @app.route('/connect_printer')
-def index():
+async def index():
     printers = get_printers()  # This should detect printers via Wi-Fi Direct/Bluetooth
-    return render_template('index.html', printers=printers)
+
+    # Scan for Bluetooth devices
+    devices = await BleakScanner.discover()
+    printers_bluetooth = [device for device in devices]
+
+    return render_template('index.html', printers=printers, printers_bluetooth=printers_bluetooth)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
