@@ -5,11 +5,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generated QR Code</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .qr-container {
+            margin-top: 20px;
+            display: inline-block;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-container img {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .download-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Generated QR Code</h1>
-    <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Code">
+    <h1>Scan the QR Code to Connect</h1>
+    <div class="qr-container">
+        <!-- Display the QR code using the base64 string passed from Flask -->
+        <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Code">
+        <!-- Provide a download link for the QR code -->
+        <a href="data:image/png;base64,{{ qr_base64 }}" class="download-btn" download="qr_code.png">Download QR Code</a>
+    </div>
 </body>
 
 </html>
