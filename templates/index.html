@@ -10,25 +10,19 @@
 <body>
     <h1>Connect to Printer</h1>
 
-    <!-- Wi-Fi Connection Section -->
-    <div>
-        <h2>Wi-Fi Connection</h2>
-        <p><strong>SSID:</strong> {{ ssid }}</p>
-        <p><strong>Password:</strong> {{ password }}</p>
-        <p><strong>Authentication Type:</strong> {{ auth_type }}</p>
-        <button onclick="connectToWiFi()">Connect via Wi-Fi</button>
-    </div>
+    <form action="{{ url_for('connect_printer') }}" method="POST">
+        <input type="hidden" name="ssid" value="{{ ssid }}">
+        <input type="hidden" name="auth_type" value="{{ auth_type }}">
+        <input type="hidden" name="password" value="{{ password }}">
+        <input type="hidden" name="bluetooth_mac" value="{{ bluetooth_mac }}">
 
-    <!-- Bluetooth Connection Section -->
-    <div>
-        <h2>Bluetooth Connection</h2>
-        <p><strong>Bluetooth MAC Address:</strong> {{ bluetooth_mac }}</p>
-        <button onclick="connectToBluetooth()">Connect via Bluetooth</button>
-    </div>
+        <h2>Select Connection Method</h2>
+        <button type="submit" name="connection_type" value="wifi">Connect via Wi-Fi</button>
+        <button type="submit" name="connection_type" value="bluetooth">Connect via Bluetooth</button>
+    </form>
 
     <hr>
 
-    <!-- File Upload Section -->
     <h2>Upload File to Print</h2>
     <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
         <label for="file">Select File:</label>
@@ -49,51 +43,12 @@
         <button type="submit">Upload and Print</button>
     </form>
 
-    <script>
-        // Wi-Fi Connection Script
-        function connectToWiFi() {
-            const data = {
-                ssid: "{{ ssid }}",
-                password: "{{ password }}",
-                auth_type: "{{ auth_type }}"
-            };
+    <hr>
 
-            fetch('/connect_wifi', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert('Wi-Fi connection successful: ' + data.message);
-                    } else {
-                        alert('Wi-Fi connection failed: ' + data.error);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        // Bluetooth Connection Script
-        function connectToBluetooth() {
-            const data = { bluetooth_mac: "{{ bluetooth_mac }}" };
-
-            fetch('/connect_bluetooth', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert('Bluetooth connection successful: ' + data.message);
-                    } else {
-                        alert('Bluetooth connection failed: ' + data.error);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-    </script>
+    <h2>Provide Paper to Printer</h2>
+    <a href="{{ url_for('provide_paper_page') }}">
+        <button>Go to Provide Paper Page</button>
+    </a>
 </body>
 
 </html>
