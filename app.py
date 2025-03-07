@@ -11,6 +11,8 @@ from utils.wifi_direct import connect_to_wifi_direct, connect_to_bluetooth, find
 from database import add_printer
 from utils.count_pages import count_pages
 from utils.printer_utils import send_to_printer
+import asyncio
+
 
 load_dotenv()
 
@@ -74,7 +76,8 @@ async def connect_bluetooth():
     if not bluetooth_mac:
         return jsonify({"status": "failed", "error": f"Bluetooth device with name {bluetooth_name} not found."}), 404
     
-    result = await connect_to_bluetooth(bluetooth_mac)
+    task = connect_to_bluetooth(bluetooth_mac)
+    result = asyncio.run_coroutine_threadsafe(task, asyncio.get_event_loop()).result()
     return jsonify(result)
 
 @app.route('/connect_printer')

@@ -39,8 +39,23 @@ def send_to_printer(filepath, printer_name):
         raise Exception("Unsupported platform for printing.")
 
 async def connect_bluetooth_printer(mac_address):
-    async with BleakClient(mac_address) as client:
-        if await client.is_connected():
-            print(f"Connected to {mac_address}")
-        else:
-            raise Exception(f"Failed to connect to Bluetooth device {mac_address}")
+    """
+    Connects to a Bluetooth printer using BleakClient.
+    
+    Args:
+    mac_address (str): The MAC address of the Bluetooth printer.
+    
+    Raises:
+    Exception: If the connection fails.
+    """
+    try:
+        # Attempt to connect to the Bluetooth printer
+        async with BleakClient(mac_address) as client:
+            if await client.is_connected():
+                print(f"Connected to Bluetooth printer with MAC address: {mac_address}")
+                # You can send commands to the printer or interact with it here
+            else:
+                raise Exception(f"Failed to connect to Bluetooth printer with MAC address: {mac_address}")
+    except Exception as e:
+        raise Exception(f"An error occurred while connecting to Bluetooth printer: {e}")
+

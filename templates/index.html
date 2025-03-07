@@ -5,6 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Printi - Connect to Printer</title>
+    <style>
+        #status-message {
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
 </head>
 
 <body>
@@ -33,21 +46,10 @@
     <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
         <label for="file">Select File:</label>
         <input type="file" name="file" id="file" required>
-        <label for="printer">Select Printer:</label>
-        <select name="printer" id="printer" required>
-            <optgroup label="Wi-Fi Printers">
-                {% for printer in printers %}
-                <option value="{{ printer }}">{{ printer }}</option>
-                {% endfor %}
-            </optgroup>
-            <optgroup label="Bluetooth Printers">
-                {% for printer in printers_bluetooth %}
-                <option value="{{ printer.name }}">{{ printer.name }}</option>
-                {% endfor %}
-            </optgroup>
-        </select>
         <button type="submit">Upload and Print</button>
     </form>
+
+    <div id="status-message"></div> <!-- Status message display area -->
 
     <script>
         // Wi-Fi Connection Script
@@ -58,40 +60,66 @@
                 auth_type: "{{ auth_type }}"
             };
 
+            console.log("Attempting to connect via Wi-Fi:", data); // Debugging log
+
             fetch('/connect_wifi', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Wi-Fi connection response:', response); // Debugging log
+                    return response.json();
+                })
                 .then(data => {
+                    const statusMessage = document.getElementById('status-message');
                     if (data.status === 'success') {
-                        alert('Wi-Fi connection successful: ' + data.message);
+                        statusMessage.textContent = 'Wi-Fi connection successful: ' + data.message;
+                        statusMessage.className = 'success';
                     } else {
-                        alert('Wi-Fi connection failed: ' + data.error);
+                        statusMessage.textContent = 'Wi-Fi connection failed: ' + data.error;
+                        statusMessage.className = 'error';
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    const statusMessage = document.getElementById('status-message');
+                    statusMessage.textContent = 'Error connecting to Wi-Fi: ' + error.message;
+                    statusMessage.className = 'error';
+                });
         }
 
         // Bluetooth Connection Script
         function connectToBluetooth() {
             const data = { bluetooth_mac: "{{ bluetooth_mac }}" };
 
+            console.log("Attempting to connect via Bluetooth:", data); // Debugging log
+
             fetch('/connect_bluetooth', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Bluetooth connection response:', response); // Debugging log
+                    return response.json();
+                })
                 .then(data => {
+                    const statusMessage = document.getElementById('status-message');
                     if (data.status === 'success') {
-                        alert('Bluetooth connection successful: ' + data.message);
+                        statusMessage.textContent = 'Bluetooth connection successful: ' + data.message;
+                        statusMessage.className = 'success';
                     } else {
-                        alert('Bluetooth connection failed: ' + data.error);
+                        statusMessage.textContent = 'Bluetooth connection failed: ' + data.error;
+                        statusMessage.className = 'error';
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    const statusMessage = document.getElementById('status-message');
+                    statusMessage.textContent = 'Error connecting to Bluetooth: ' + error.message;
+                    statusMessage.className = 'error';
+                });
         }
     </script>
 </body>
