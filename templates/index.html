@@ -23,25 +23,19 @@
 <body>
     <h1>Connect to Printer</h1>
 
-    <!-- Wi-Fi Connection Section -->
-    <div>
-        <h2>Wi-Fi Connection</h2>
-        <p><strong>SSID:</strong> {{ ssid }}</p>
-        <p><strong>Password:</strong> {{ password }}</p>
-        <p><strong>Authentication Type:</strong> {{ auth_type }}</p>
-        <button onclick="connectToWiFi()">Connect via Wi-Fi</button>
-    </div>
+    <form action="{{ url_for('connect_printer') }}" method="POST">
+        <input type="hidden" name="ssid" value="{{ ssid }}">
+        <input type="hidden" name="auth_type" value="{{ auth_type }}">
+        <input type="hidden" name="password" value="{{ password }}">
+        <input type="hidden" name="bluetooth_mac" value="{{ bluetooth_mac }}">
 
-    <!-- Bluetooth Connection Section -->
-    <div>
-        <h2>Bluetooth Connection</h2>
-        <p><strong>Bluetooth MAC Address:</strong> {{ bluetooth_mac }}</p>
-        <button onclick="connectToBluetooth()">Connect via Bluetooth</button>
-    </div>
+        <h2>Select Connection Method</h2>
+        <button type="submit" name="connection_type" value="wifi">Connect via Wi-Fi</button>
+        <button type="submit" name="connection_type" value="bluetooth">Connect via Bluetooth</button>
+    </form>
 
     <hr>
 
-    <!-- File Upload Section -->
     <h2>Upload File to Print</h2>
     <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
         <label for="file">Select File:</label>
@@ -51,77 +45,12 @@
 
     <div id="status-message"></div> <!-- Status message display area -->
 
-    <script>
-        // Wi-Fi Connection Script
-        function connectToWiFi() {
-            const data = {
-                ssid: "{{ ssid }}",
-                password: "{{ password }}",
-                auth_type: "{{ auth_type }}"
-            };
+    <hr>
 
-            console.log("Attempting to connect via Wi-Fi:", data); // Debugging log
-
-            fetch('/connect_wifi', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-                .then(response => {
-                    console.log('Wi-Fi connection response:', response); // Debugging log
-                    return response.json();
-                })
-                .then(data => {
-                    const statusMessage = document.getElementById('status-message');
-                    if (data.status === 'success') {
-                        statusMessage.textContent = 'Wi-Fi connection successful: ' + data.message;
-                        statusMessage.className = 'success';
-                    } else {
-                        statusMessage.textContent = 'Wi-Fi connection failed: ' + data.error;
-                        statusMessage.className = 'error';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    const statusMessage = document.getElementById('status-message');
-                    statusMessage.textContent = 'Error connecting to Wi-Fi: ' + error.message;
-                    statusMessage.className = 'error';
-                });
-        }
-
-        // Bluetooth Connection Script
-        function connectToBluetooth() {
-            const data = { bluetooth_mac: "{{ bluetooth_mac }}" };
-
-            console.log("Attempting to connect via Bluetooth:", data); // Debugging log
-
-            fetch('/connect_bluetooth', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-                .then(response => {
-                    console.log('Bluetooth connection response:', response); // Debugging log
-                    return response.json();
-                })
-                .then(data => {
-                    const statusMessage = document.getElementById('status-message');
-                    if (data.status === 'success') {
-                        statusMessage.textContent = 'Bluetooth connection successful: ' + data.message;
-                        statusMessage.className = 'success';
-                    } else {
-                        statusMessage.textContent = 'Bluetooth connection failed: ' + data.error;
-                        statusMessage.className = 'error';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    const statusMessage = document.getElementById('status-message');
-                    statusMessage.textContent = 'Error connecting to Bluetooth: ' + error.message;
-                    statusMessage.className = 'error';
-                });
-        }
-    </script>
+    <h2>Provide Paper to Printer</h2>
+    <a href="{{ url_for('provide_paper_page') }}">
+        <button>Go to Provide Paper Page</button>
+    </a>
 </body>
 
 </html>

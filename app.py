@@ -21,10 +21,6 @@ app.secret_key = os.urandom(24)
 
 razorpay_client = razorpay.Client(auth=(os.getenv('RAZORPAY_KEY'), os.getenv('RAZORPAY_SECRET')))
 
-@app.route('/favicon.ico')
-def favicon():
-    return "", 204  # Serve blank favicon
-
 @app.route('/')
 def home():
     return render_template('home.html')
@@ -54,40 +50,28 @@ def printer_setup():
 
     return render_template('printer_setup_form.html')
 
-@app.route('/connect_wifi', methods=['POST'])
-def connect_wifi():
-    data = request.json
-    ssid = data.get('ssid')
-    password = data.get('password')
-    auth_type = data.get('auth_type')
+@app.route('/connect_printer', methods=['GET', 'POST'])
+async def connect_printer():
+    if request.method == 'POST':
+        connection_type = request.form.get('connection_type')
+        ssid = request.form.get('ssid', '')
+        auth_type = request.form.get('auth_type', '')
+        password = request.form.get('password', '')
+        bluetooth_mac = request.form.get('bluetooth_mac', '')
 
-    result = connect_to_wifi_direct(ssid, auth_type, password)
-    return jsonify(result)
+        if connection_type == 'wifi':
+            result = connect_to_wifi_direct(ssid, auth_type, password)
+        elif connection_type == 'bluetooth':
+            result = await connect_to_bluetooth(bluetooth_mac)
+        else:
+            return jsonify({"status": "failed", "error": "Invalid connection type"}), 400
 
-@app.route('/connect_bluetooth', methods=['POST'])
-async def connect_bluetooth():
-    bluetooth_name = request.json.get('bluetooth_mac')
-    
-    if not bluetooth_name:
-        return jsonify({"status": "failed", "error": "Bluetooth device name is required."}), 400
-    
-    bluetooth_mac = find_bluetooth_mac_by_name(bluetooth_name)
-    
-    if not bluetooth_mac:
-        return jsonify({"status": "failed", "error": f"Bluetooth device with name {bluetooth_name} not found."}), 404
-    
-    task = connect_to_bluetooth(bluetooth_mac)
-    result = asyncio.run_coroutine_threadsafe(task, asyncio.get_event_loop()).result()
-    return jsonify(result)
+        return jsonify(result)
 
-@app.route('/connect_printer')
-def connect_printer():
-    ssid = request.args.get('ssid', '')
-    auth_type = request.args.get('auth_type', '')
-    password = request.args.get('password', '')
-    bluetooth_mac = request.args.get('bluetooth_mac', '')
-
-    return render_template('index.html', ssid=ssid, auth_type=auth_type, password=password, bluetooth_mac=bluetooth_mac)
+    return render_template('index.html', ssid=request.args.get('ssid', ''), 
+                           auth_type=request.args.get('auth_type', ''), 
+                           password=request.args.get('password', ''), 
+                           bluetooth_mac=request.args.get('bluetooth_mac', ''))
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -105,11 +89,36 @@ def upload_file():
 
     return render_template('payment.html', amount=amount, razorpay_key=os.getenv('RAZORPAY_KEY'))
 
+@app.route('/process_paper_submission', methods=['POST'])
+def process_paper_submission():
+    printer = request.form.get('printer')
+    paper_count = int(request.form.get('paper_count'))
+    
+    if not printer or paper_count <= 0:
+        return jsonify({"status": "failed", "error": "Invalid printer or paper count"}), 400
+    
+    amount = paper_count * 100  
+    
+    order = razorpay_client.order.create({
+        'amount': amount,
+        'currency': 'INR',
+        'payment_capture': '1'
+    })
+    
+    session['order_data'] = {
+        'printer_name': printer,
+        'num_pages': paper_count,
+        'amount': amount,
+        'order_id': order['id']
+    }
+    
+    return render_template('payment.html', amount=amount, razorpay_key=os.getenv('RAZORPAY_KEY'))
+
 @app.route('/verify', methods=['POST'])
 def verify_payment():
     order_data = session.get('order_data')
     if not order_data:
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
 
     payment_id = request.form.get('razorpay_payment_id')
     order_id = order_data['order_id']

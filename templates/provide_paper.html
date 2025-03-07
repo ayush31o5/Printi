@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provide Paper to Printer</title>
+</head>
+
+<body>
+    <h1>Provide Paper to Printer</h1>
+
+    <form action="{{ url_for('process_paper_submission') }}" method="post">
+        <label for="printer">Select Printer:</label>
+        <select name="printer" id="printer" required>
+            <option value="{{ printer }}">{{ printer }}</option>
+        </select>
+        <label for="paper_count">Number of Pages:</label>
+        <input type="number" name="paper_count" id="paper_count" required min="1">
+        <button type="submit">Proceed to Payment</button>
+    </form>
+</body>
+
+</html>
