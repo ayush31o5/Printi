@@ -13,7 +13,6 @@ from utils.count_pages import count_pages
 from utils.printer_utils import send_to_printer
 import asyncio
 
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -72,6 +71,10 @@ async def connect_printer():
                            auth_type=request.args.get('auth_type', ''), 
                            password=request.args.get('password', ''), 
                            bluetooth_mac=request.args.get('bluetooth_mac', ''))
+
+@app.route('/provide_paper')
+def provide_paper_page():
+    return render_template('provide_paper.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():

@@ -5,44 +5,60 @@ from pywifi import PyWiFi, const, Profile
 from bleak import BleakClient
 from zeroconf import Zeroconf, ServiceBrowser
 
-def connect_to_wifi_direct(ssid, auth_type=None, password=None):
+def connect_to_wifi_direct(ssid, password):
     try:
-        # Initialize Wi-Fi interface
         wifi = PyWiFi()
-        iface = wifi.interfaces()[0]
+        interfaces = wifi.interfaces()
+
+        if not interfaces:
+            raise Exception("No Wi-Fi interfaces found. Make sure Wi-Fi is enabled.")
+
+        iface = interfaces[0]  # Select the first Wi-Fi interface
 
         # Disconnect any existing connections
         iface.disconnect()
         time.sleep(1)
 
-        # Set up the Wi-Fi Direct connection profile
+        # Set up Wi-Fi Direct profile
         profile = Profile()
         profile.ssid = ssid
-        if auth_type and auth_type.lower() == "wpa2" and password:
-            profile.auth = const.AUTH_ALG_OPEN
-            profile.akm.append(const.AKM_TYPE_WPA2PSK)
-            profile.key = password
-        else:
-            profile.auth = const.AUTH_ALG_OPEN
-            profile.akm.append(const.AKM_TYPE_NONE)
+        profile.auth = const.AUTH_ALG_OPEN
+        profile.akm.append(const.AKM_TYPE_WPA2PSK) if password else profile.akm.append(const.AKM_TYPE_NONE)
+        profile.key = password if password else ''
         profile.cipher = const.CIPHER_TYPE_CCMP
 
         # Apply the connection profile
         iface.remove_all_network_profiles()
         temp_profile = iface.add_network_profile(profile)
-
-        # Connect to the network
         iface.connect(temp_profile)
-        time.sleep(10)  # Allow time for the connection to establish
+        time.sleep(10)
 
         if iface.status() == const.IFACE_CONNECTED:
-            printer_ip = discover_printer_ip()
-            if not printer_ip:
-                raise Exception("Failed to discover printer IP address.")
-            return {"status": "success", "printer_ip": printer_ip}
+            return {"status": "success", "message": "Connected to Wi-Fi Direct"}
         else:
-            raise Exception("Wi-Fi Direct connection failed. Please check the credentials or SSID.")
+            raise Exception("Wi-Fi Direct connection failed. Check SSID and password.")
 
+    except Exception as e:
+        return {"status": "failed", "error": str(e)}
+
+async def connect_to_bluetooth_async(bluetooth_mac):
+    try:
+        async with BleakClient(bluetooth_mac) as client:
+            is_connected = await client.is_connected()
+            if is_connected:
+                return {"status": "success", "message": f"Connected to Bluetooth device {bluetooth_mac}."}
+            else:
+                return {"status": "failed", "error": f"Failed to connect to Bluetooth device {bluetooth_mac}."}
+    except Exception as e:
+        return {"status": "failed", "error": str(e)}
+
+def connect_to_bluetooth(bluetooth_mac):
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = loop.run_until_complete(connect_to_bluetooth_async(bluetooth_mac))
+        loop.close()
+        return result
     except Exception as e:
         return {"status": "failed", "error": str(e)}
 
@@ -62,58 +78,23 @@ def discover_printer_ip():
         listener = PrinterListener()
         ServiceBrowser(zc, "_http._tcp.local.", listener)
 
-        time.sleep(5)  # Wait for discovery
+        time.sleep(5)
         zc.close()
         return listener.ip
     except Exception as e:
-        print(f"Error discovering printer IP: {e}")
         return None
 
-# Asynchronous function to connect to Bluetooth
-async def connect_to_bluetooth_asyn(bluetooth_mac):
-    try:
-        async with BleakClient(bluetooth_mac) as client:
-            is_connected = await client.is_connected()
-            if is_connected:
-                return {"status": "success", "message": f"Connected to Bluetooth device {bluetooth_mac}."}
-            else:
-                return {"status": "failed", "error": f"Failed to connect to Bluetooth device {bluetooth_mac}."}
-    except Exception as e:
-        return {"status": "failed", "error": str(e)}
-
-# Corrected function to run asynchronous Bluetooth connection task
-def connect_to_bluetooth(bluetooth_mac):
-    task = connect_to_bluetooth_asyn(bluetooth_mac)
-    return asyncio.run_coroutine_threadsafe(task, asyncio.get_event_loop()).result()
-
-# Function to find Bluetooth MAC by device name
-async def find_bluetooth_mac_by_name(bluetooth_name):
-    try:
-        devices = await discover(timeout=8)
-        
-        for device in devices:
-            if bluetooth_name.lower() in device.name.lower():
-                return device.address
-        raise Exception(f"Bluetooth device with name '{bluetooth_name}' not found.")
-    except Exception:
-        return None
-
-# Main function to handle Wi-Fi Direct and Bluetooth connection
-def connect_printer(ssid, auth_type, password, bluetooth_name):
-    wifi_response = connect_to_wifi_direct(ssid, auth_type, password)
+def connect_printer(ssid, password, bluetooth_mac):
+    wifi_response = connect_to_wifi_direct(ssid, password)
     if wifi_response['status'] == 'success':
-        print("Successfully connected to Wi-Fi Direct")
-        printer_ip = wifi_response['printer_ip']
-        print(f"Printer IP: {printer_ip}")
-
-        # Find Bluetooth MAC using the printer's name
-        bluetooth_mac = asyncio.run(find_bluetooth_mac_by_name(bluetooth_name))
-        if bluetooth_mac:
-            print(f"Connecting to Bluetooth device: {bluetooth_mac}")
-            bluetooth_response = connect_to_bluetooth(bluetooth_mac)
-            print(bluetooth_response)
+        print("✅ Successfully connected to Wi-Fi Direct!")
+        printer_ip = discover_printer_ip()
+        if printer_ip:
+            print(f"🖨 Printer IP: {printer_ip}")
         else:
-            print(f"Bluetooth device '{bluetooth_name}' not found.")
-    else:
-        print(f"Failed to connect to Wi-Fi Direct: {wifi_response['error']}")
+            print("⚠ Could not discover printer IP, but Wi-Fi Direct is connected.")
 
+    if bluetooth_mac:
+        print(f"🔄 Connecting to Bluetooth device: {bluetooth_mac}")
+        bluetooth_response = connect_to_bluetooth(bluetooth_mac)
+        print(bluetooth_response)
