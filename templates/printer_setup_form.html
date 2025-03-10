@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
     <title>Printer Setup Form</title>
     <style>
         body {
@@ -15,6 +14,7 @@
 
         h1 {
             color: #333;
+            text-align: center;
         }
 
         form {
@@ -46,6 +46,8 @@
             color: white;
             border: none;
             cursor: pointer;
+            padding: 10px;
+            font-size: 16px;
         }
 
         input[type="submit"]:hover {
@@ -55,14 +57,41 @@
         .section-title {
             margin-top: 20px;
             font-size: 1.2em;
-            color: #555;
+            color: black; /* Changed to black */
+            font-weight: bold;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            display: none;
+            margin-top: -10px;
+            margin-bottom: 10px;
         }
     </style>
+    <script>
+        function validateForm() {
+            var ssid = document.getElementById("ssid").value.trim();
+            var password = document.getElementById("password").value.trim();
+            var bluetoothMac = document.getElementById("bluetooth_mac").value.trim();
+            var bluetoothName = document.getElementById("bluetooth_name").value.trim();
+            
+            // Check if at least one of Wi-Fi or Bluetooth is filled
+            if ((ssid !== "" && password !== "") || (bluetoothMac !== "" && bluetoothName !== "")) {
+                return true; // Allow form submission
+            } else {
+                document.getElementById("error-message").style.display = "block";
+                return false; // Prevent form submission
+            }
+        }
+    </script>
 </head>
 
 <body>
     <h1>Printer Setup</h1>
-    <form action="/add_printer" method="POST">
+    <form action="/add_printer" method="POST" onsubmit="return validateForm()">
+        <p id="error-message" class="error-message">Please fill either Wi-Fi Setup or Bluetooth Setup!</p>
+
         <!-- Wi-Fi Setup Section -->
         <div>
             <p class="section-title">Wi-Fi Setup</p>
@@ -82,11 +111,11 @@
         <!-- Bluetooth Setup Section -->
         <div>
             <p class="section-title">Bluetooth Setup</p>
-            <label for="bluetooth_mac">Bluetooth name Address:</label>
+            <label for="bluetooth_mac">Bluetooth Name Address:</label>
             <input type="text" id="bluetooth_mac" name="bluetooth_mac" placeholder="Enter Bluetooth name (optional)">
 
             <label for="bluetooth_name">Bluetooth Mac Name:</label>
-            <input type="text" id="bluetooth_name" name="bluetooth_name" placeholder="Enter Printer mac (optional)">
+            <input type="text" id="bluetooth_name" name="bluetooth_name" placeholder="Enter Printer MAC (optional)">
         </div>
 
         <input type="submit" value="Generate QR Code">

@@ -35,7 +35,7 @@ h1 {
 /* Form Styling */
 form {
     margin-top: 20px;
-    text-align: left;
+    text-align: center;
 }
 
 label {
@@ -45,8 +45,9 @@ label {
     margin: 10px 0 5px;
 }
 
-input, select {
-    width: 100%;
+/* Input Fields */
+input[type="file"] {
+    width: 80%;
     padding: 10px;
     border-radius: 5px;
     border: none;
@@ -56,12 +57,12 @@ input, select {
     transition: 0.3s ease-in-out;
 }
 
-input:focus, select:focus {
+input:focus {
     transform: scale(1.02);
 }
 
 /* Buttons */
-.btn {
+button {
     display: inline-block;
     margin-top: 15px;
     padding: 12px 25px;
@@ -76,54 +77,32 @@ input:focus, select:focus {
     border: none;
 }
 
-.btn:hover {
+button:hover {
     background: #e68900;
     transform: scale(1.1);
 }
 
-/* QR Code Container */
-.qr-container {
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    margin: 20px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-    transition: transform 0.3s ease-in-out;
-    width: 300px;
-}
-
-.qr-container:hover {
-    transform: translateY(-10px) scale(1.05);
-}
-
-/* QR Code Images */
-.qr-container img {
-    border: 3px solid white;
+/* Status Message */
+#status-message {
     padding: 10px;
-    border-radius: 12px;
-    width: 200px;
-    height: 200px;
-    animation: fadeIn 1s ease-in-out;
+    margin-top: 20px;
+    font-size: 1.2em;
 }
 
-/* Download Button */
-.download-btn {
-    display: inline-block;
-    margin-top: 15px;
-    padding: 10px 20px;
-    background: #4CAF50;
-    color: white;
-    font-weight: bold;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: 0.3s ease-in-out;
+.success {
+    color: #4CAF50;
 }
 
-.download-btn:hover {
-    background: #3e8e41;
-    transform: scale(1.1);
+.error {
+    color: #FF5733;
+}
+
+/* Divider */
+hr {
+    margin: 40px 0;
+    border: 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.3);
 }
 
 /* Animation Keyframes */

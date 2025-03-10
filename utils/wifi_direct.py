@@ -98,3 +98,15 @@ def connect_printer(ssid, password, bluetooth_mac):
         print(f"🔄 Connecting to Bluetooth device: {bluetooth_mac}")
         bluetooth_response = connect_to_bluetooth(bluetooth_mac)
         print(bluetooth_response)
+
+
+
+async def find_bluetooth_mac_by_name(bluetooth_name):
+    try:
+        devices = await BleakScanner.discover(timeout=8)
+        for device in devices:
+            if bluetooth_name.lower() in device.name.lower():
+                return device.address
+        raise Exception(f"Bluetooth device with name '{bluetooth_name}' not found.")
+    except Exception as e:
+        return None
