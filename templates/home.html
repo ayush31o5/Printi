@@ -1,22 +1,68 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Printi</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background-color: #ffffff;
+            /* white background */
+            font-family: Arial, sans-serif;
+            color: #000000;
+            /* default text color: black */
+        }
 
-    <title>Printi - Home</title>
+        a {
+            color: #000000;
+            /* set link text to black */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+    </style>
 </head>
 
 <body>
     <h1>Welcome to Printi</h1>
     <!-- Link to add a printer page -->
     <a href="{{ url_for('printer_setup') }}">Add a Printer</a><br>
-    
-    <!-- Link to connect printer page -->
-    <a href="{{ url_for('connect_printer_route') }}">Connect to Printer</a>
 
+    <div class="instructions">
+        <h2>Finding WiFi Direct Details on Your Printer</h2>
+        <p>To set up WiFi Direct on your printer, you will need to locate the following details:</p>
+        <ul>
+            <li><strong>SSID:</strong> The wireless network name. You can usually find this printed on a label on your
+                printer, in the printer's user manual, or in the network settings menu.</li>
+            <li><strong>Password (Passphrase):</strong> This is often provided on the same label as the SSID or in the
+                documentation. If your printer requires a password, it may be preset or configurable via the printer’s
+                settings.</li>
+            <li><strong>Security Type:</strong> Most modern printers use WPA2 (or WPA/WPA2) for secure WiFi Direct
+                connections. Check your printer’s network settings or manual to confirm this.</li>
+            <li><strong>Encryption/Authentication:</strong> In some cases, you might need to verify additional details
+                like the encryption method (e.g., CCMP) or authentication type (commonly, open or WPA2-PSK).</li>
+        </ul>
+        <p>
+            If you are uncertain about any of these details, please consult your printer's user manual or visit the
+            support page on the manufacturer's website.
+        </p>
+    </div>
 </body>
 
 </html>
+
