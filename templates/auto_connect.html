@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Connecting to Printer</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Connecting to Printer...</h1>
+        <p>Please ensure your phone's Wi‑Fi is enabled (do not join the printer's Wi‑Fi manually) and that you remain on
+            mobile data.</p>
+        <div id="status">Attempting connection...</div>
+    </div>
+    <script>
+        window.addEventListener('load', function () {
+            // Prepare connection data from query parameters
+            var data = {
+                ssid: "{{ ssid }}",
+                auth_type: "{{ auth_type }}",
+                password: "{{ password }}",
+                bluetooth_mac: "{{ bluetooth_mac }}"
+            };
+            // POST data to auto-connect
+            fetch("{{ url_for('connect_printer_route') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(result => {
+                    var statusDiv = document.getElementById("status");
+                    if (result.status === "success") {
+                        statusDiv.innerHTML = "✅ " + result.message;
+                        // Optionally, auto-redirect or display a confirmation page
+                    } else {
+                        statusDiv.innerHTML = "❌ Connection failed: " + result.error;
+                        // Optionally, auto-retry or instruct the user to try again
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("status").innerHTML = "Error: " + error;
+                });
+        });
+    </script>
+</body>
+
+</html>

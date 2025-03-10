@@ -7,7 +7,7 @@ import os
 import hmac
 import hashlib
 from dotenv import load_dotenv
-from utils.wifi_direct import connect_to_wifi_direct, connect_to_bluetooth, find_bluetooth_mac_by_name, discover_printer_ip
+from utils.wifi_direct import connect_to_wifi_direct, connect_to_bluetooth, discover_printer_ip, find_bluetooth_mac_by_name
 from database import add_printer
 from utils.count_pages import count_pages
 from utils.printer_utils import send_to_printer
@@ -26,16 +26,26 @@ def home():
 
 @app.route('/add_printer', methods=['GET', 'POST'])
 def printer_setup():
+    """
+    Registers a printer by saving its connection details and generating a QR code.
+    The generated QR code includes SSID, auth_type, password, and (optionally) Bluetooth MAC.
+    """
     if request.method == 'POST':
         ssid = request.form['ssid']
         password = request.form.get('password', '')
         auth_type = request.form['auth_type']
         bluetooth_mac = request.form.get('bluetooth_mac', '')
 
+        # Generate connection URL (which will auto-connect without extra user choice)
         connection_url = f"http://{request.host}/connect_printer?ssid={ssid}&auth_type={auth_type}&password={password}&bluetooth_mac={bluetooth_mac}"
 
         # Generate QR code for the connection URL
-        qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4
+        )
         qr.add_data(connection_url)
         qr.make(fit=True)
         img = qr.make_image(fill='black', back_color='white')
@@ -58,31 +68,34 @@ def printer_setup():
 
 @app.route('/connect_printer', methods=['GET', 'POST'])
 async def connect_printer_route():
+    """
+    When the QR code is scanned, this endpoint is loaded.
+    - On GET, it serves an auto‑connect page that immediately posts connection data.
+    - On POST, it automatically attempts a Wi‑Fi Direct connection.
+    """
     if request.method == 'POST':
-        connection_type = request.form.get('connection_type')
-        ssid = request.form.get('ssid', '')
-        auth_type = request.form.get('auth_type', '')
-        password = request.form.get('password', '')
-        bluetooth_mac = request.form.get('bluetooth_mac', '')
+        # Data is received as JSON from the auto_connect page.
+        data = request.get_json() or {}
+        ssid = data.get('ssid', '')
+        auth_type = data.get('auth_type', '')
+        password = data.get('password', '')
+        bluetooth_mac = data.get('bluetooth_mac', '')
 
-        if connection_type == 'wifi':
-            # Note: Now passing 3 parameters as defined in connect_to_wifi_direct
-            result = connect_to_wifi_direct(ssid, auth_type, password)
-        elif connection_type == 'bluetooth':
-            result = await connect_to_bluetooth(bluetooth_mac)
-        else:
-            return jsonify({"status": "failed", "error": "Invalid connection type"}), 400
-
+        # For auto-connect, we assume Wi-Fi Direct (Bluetooth option can be added later)
+        result = connect_to_wifi_direct(ssid, auth_type, password)
+        # Optionally, you could trigger Bluetooth if needed:
+        # if bluetooth_mac:
+        #     result = await connect_to_bluetooth(bluetooth_mac)
         return jsonify(result)
-
-    # For GET requests, you can pre-fill the connection details if provided in the query string
-    return render_template(
-        'index.html',
-        ssid=request.args.get('ssid', ''),
-        auth_type=request.args.get('auth_type', ''),
-        password=request.args.get('password', ''),
-        bluetooth_mac=request.args.get('bluetooth_mac', '')
-    )
+    else:
+        # GET request: render the auto‑connect page with the parameters from the QR URL.
+        return render_template(
+            'auto_connect.html',
+            ssid=request.args.get('ssid', ''),
+            auth_type=request.args.get('auth_type', ''),
+            password=request.args.get('password', ''),
+            bluetooth_mac=request.args.get('bluetooth_mac', '')
+        )
 
 @app.route('/provide_paper')
 def provide_paper_page():
@@ -163,4 +176,5 @@ def verify_payment():
         return "Payment verification failed", 400
 
 if __name__ == '__main__':
+    # In production, run behind a proper WSGI server (e.g., Gunicorn) with a reverse proxy (e.g., Nginx) to handle SSL.
     app.run(host='0.0.0.0', port=5000, debug=True)

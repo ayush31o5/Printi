@@ -7,8 +7,8 @@ from zeroconf import Zeroconf, ServiceBrowser
 
 def connect_to_wifi_direct(ssid, auth_type, password):
     """
-    Connects to a Wi-Fi Direct network using the provided SSID, authentication type, and password.
-    Currently, the auth_type parameter is not used in the connection logic.
+    Connects to a Wi-Fi Direct network using the provided SSID, auth_type, and password.
+    Note: The auth_type parameter is currently not used in the connection logic.
     """
     try:
         wifi = PyWiFi()
@@ -27,7 +27,6 @@ def connect_to_wifi_direct(ssid, auth_type, password):
         profile = Profile()
         profile.ssid = ssid
         profile.auth = const.AUTH_ALG_OPEN
-        # Use WPA2PSK if a password is provided; otherwise, no authentication
         if password:
             profile.akm.append(const.AKM_TYPE_WPA2PSK)
         else:
@@ -50,9 +49,6 @@ def connect_to_wifi_direct(ssid, auth_type, password):
         return {"status": "failed", "error": str(e)}
 
 async def connect_to_bluetooth_async(bluetooth_mac):
-    """
-    Attempts to connect asynchronously to a Bluetooth device using its MAC address.
-    """
     try:
         async with BleakClient(bluetooth_mac) as client:
             is_connected = await client.is_connected()
@@ -64,9 +60,6 @@ async def connect_to_bluetooth_async(bluetooth_mac):
         return {"status": "failed", "error": str(e)}
 
 def connect_to_bluetooth(bluetooth_mac):
-    """
-    Wrapper to run the asynchronous Bluetooth connection function in a new event loop.
-    """
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -77,9 +70,6 @@ def connect_to_bluetooth(bluetooth_mac):
         return {"status": "failed", "error": str(e)}
 
 def discover_printer_ip():
-    """
-    Uses Zeroconf to discover a printer's IP address on the network.
-    """
     try:
         class PrinterListener:
             def __init__(self):
@@ -100,9 +90,6 @@ def discover_printer_ip():
         return None
 
 async def find_bluetooth_mac_by_name(bluetooth_name):
-    """
-    Asynchronously scans for Bluetooth devices and returns the MAC address of the device whose name contains the given string.
-    """
     try:
         devices = await BleakScanner.discover(timeout=8)
         for device in devices:
