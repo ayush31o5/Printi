@@ -2,10 +2,14 @@ import time
 import socket
 import asyncio
 from pywifi import PyWiFi, const, Profile
-from bleak import BleakClient
+from bleak import BleakClient, BleakScanner
 from zeroconf import Zeroconf, ServiceBrowser
 
-def connect_to_wifi_direct(ssid, password):
+def connect_to_wifi_direct(ssid, auth_type, password):
+    """
+    Connects to a Wi-Fi Direct network using the provided SSID, authentication type, and password.
+    Currently, the auth_type parameter is not used in the connection logic.
+    """
     try:
         wifi = PyWiFi()
         interfaces = wifi.interfaces()
@@ -23,7 +27,11 @@ def connect_to_wifi_direct(ssid, password):
         profile = Profile()
         profile.ssid = ssid
         profile.auth = const.AUTH_ALG_OPEN
-        profile.akm.append(const.AKM_TYPE_WPA2PSK) if password else profile.akm.append(const.AKM_TYPE_NONE)
+        # Use WPA2PSK if a password is provided; otherwise, no authentication
+        if password:
+            profile.akm.append(const.AKM_TYPE_WPA2PSK)
+        else:
+            profile.akm.append(const.AKM_TYPE_NONE)
         profile.key = password if password else ''
         profile.cipher = const.CIPHER_TYPE_CCMP
 
@@ -42,6 +50,9 @@ def connect_to_wifi_direct(ssid, password):
         return {"status": "failed", "error": str(e)}
 
 async def connect_to_bluetooth_async(bluetooth_mac):
+    """
+    Attempts to connect asynchronously to a Bluetooth device using its MAC address.
+    """
     try:
         async with BleakClient(bluetooth_mac) as client:
             is_connected = await client.is_connected()
@@ -53,6 +64,9 @@ async def connect_to_bluetooth_async(bluetooth_mac):
         return {"status": "failed", "error": str(e)}
 
 def connect_to_bluetooth(bluetooth_mac):
+    """
+    Wrapper to run the asynchronous Bluetooth connection function in a new event loop.
+    """
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -62,46 +76,33 @@ def connect_to_bluetooth(bluetooth_mac):
     except Exception as e:
         return {"status": "failed", "error": str(e)}
 
-# Discover Printer IP using Zeroconf
 def discover_printer_ip():
+    """
+    Uses Zeroconf to discover a printer's IP address on the network.
+    """
     try:
         class PrinterListener:
             def __init__(self):
                 self.ip = None
 
-            def add_service(self, zeroconf, type, name):
-                info = zeroconf.get_service_info(type, name)
+            def add_service(self, zeroconf, service_type, name):
+                info = zeroconf.get_service_info(service_type, name)
                 if info:
                     self.ip = socket.inet_ntoa(info.addresses[0])
 
         zc = Zeroconf()
         listener = PrinterListener()
         ServiceBrowser(zc, "_http._tcp.local.", listener)
-
         time.sleep(5)
         zc.close()
         return listener.ip
     except Exception as e:
         return None
 
-def connect_printer(ssid, password, bluetooth_mac):
-    wifi_response = connect_to_wifi_direct(ssid, password)
-    if wifi_response['status'] == 'success':
-        print("✅ Successfully connected to Wi-Fi Direct!")
-        printer_ip = discover_printer_ip()
-        if printer_ip:
-            print(f"🖨 Printer IP: {printer_ip}")
-        else:
-            print("⚠ Could not discover printer IP, but Wi-Fi Direct is connected.")
-
-    if bluetooth_mac:
-        print(f"🔄 Connecting to Bluetooth device: {bluetooth_mac}")
-        bluetooth_response = connect_to_bluetooth(bluetooth_mac)
-        print(bluetooth_response)
-
-
-
 async def find_bluetooth_mac_by_name(bluetooth_name):
+    """
+    Asynchronously scans for Bluetooth devices and returns the MAC address of the device whose name contains the given string.
+    """
     try:
         devices = await BleakScanner.discover(timeout=8)
         for device in devices:
