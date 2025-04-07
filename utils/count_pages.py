@@ -23,7 +23,7 @@ def count_pdf_pages(filepath):
 def count_doc_pages(filepath):
     try:
         doc = Document(filepath)
-        return len(doc.paragraphs) // 30 + 1  # Assuming 30 paragraphs per page
+        return len(doc.paragraphs) // 30 + 1
     except Exception as e:
         print(f"Error counting DOC pages: {e}")
         return 0
@@ -32,7 +32,7 @@ def count_txt_pages(filepath):
     try:
         with open(filepath, 'r', encoding='utf-8') as file:
             lines = file.readlines()
-            return len(lines) // 30 + 1  # Assuming 30 lines per page
+            return len(lines) // 30 + 1
     except Exception as e:
         print(f"Error counting TXT pages: {e}")
         return 0

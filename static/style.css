@@ -1,7 +1,5 @@
-/* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-/* General Page Styling */
 body {
     font-family: "Poppins", sans-serif;
     text-align: center;
@@ -9,7 +7,6 @@ body {
     padding: 0;
     background: linear-gradient(135deg, #1e3c72, #2a5298);
     background-color: #001f3f;
-        /* Dark blue background */
     color: #ffffff;
     overflow-x: hidden;
 }
@@ -18,7 +15,6 @@ p {
     font-size: 1.1em;
 }
 
-/* Main Container */
 .container {
     width: 90%;
     max-width: 800px;
@@ -32,14 +28,12 @@ p {
     animation: fadeIn 1s ease-in-out;
 }
 
-/* Title Styling */
 h1 {
     font-size: 2.5rem;
     margin-top: 20px;
     animation: fadeIn 1s ease-in-out;
 }
 
-/* Form Styling */
 form {
     margin-top: 20px;
     text-align: left;
@@ -69,7 +63,6 @@ select:focus {
     transform: scale(1.02);
 }
 
-/* Buttons */
 .btn {
     display: inline-block;
     margin-top: 15px;
@@ -90,7 +83,6 @@ select:focus {
     transform: scale(1.1);
 }
 
-/* QR Code Container */
 .qr-container {
     display: inline-block;
     background: rgba(255, 255, 255, 0.1);
@@ -107,7 +99,6 @@ select:focus {
     transform: translateY(-10px) scale(1.05);
 }
 
-/* QR Code Images */
 .qr-container img {
     border: 3px solid white;
     padding: 10px;
@@ -117,7 +108,6 @@ select:focus {
     animation: fadeIn 1s ease-in-out;
 }
 
-/* Download Button */
 .download-btn {
     display: inline-block;
     margin-top: 15px;
@@ -135,7 +125,6 @@ select:focus {
     transform: scale(1.1);
 }
 
-/* Animation Keyframes */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -147,6 +136,7 @@ select:focus {
         transform: translateY(0);
     }
 }
+
 .section-title {
     color: black !important;
 }

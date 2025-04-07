@@ -3,70 +3,24 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <title>Printer Setup Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 20px;
         }
 
         h1 {
-            color: #333;
             text-align: center;
+            color: #333;
         }
 
         form {
             max-width: 400px;
-            margin: 0 auto;
+            margin: auto;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 8px;
-            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        input[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            padding: 10px;
-            font-size: 16px;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
-        .section-title {
-            margin-top: 20px;
-            font-size: 1.2em;
-            color: black; /* Changed to black */
-            font-weight: bold;
-        }
-
-        .error-message {
-            color: red;
-            font-size: 14px;
-            display: none;
-            margin-top: -10px;
-            margin-bottom: 10px;
         }
     </style>
     <script>
@@ -75,13 +29,11 @@
             var password = document.getElementById("password").value.trim();
             var bluetoothMac = document.getElementById("bluetooth_mac").value.trim();
             var bluetoothName = document.getElementById("bluetooth_name").value.trim();
-            
-            // Check if at least one of Wi-Fi or Bluetooth is filled
             if ((ssid !== "" && password !== "") || (bluetoothMac !== "" && bluetoothName !== "")) {
-                return true; // Allow form submission
+                return true;
             } else {
                 document.getElementById("error-message").style.display = "block";
-                return false; // Prevent form submission
+                return false;
             }
         }
     </script>
@@ -90,35 +42,27 @@
 <body>
     <h1>Printer Setup</h1>
     <form action="/add_printer" method="POST" onsubmit="return validateForm()">
-        <p id="error-message" class="error-message">Please fill either Wi-Fi Setup or Bluetooth Setup!</p>
-
-        <!-- Wi-Fi Setup Section -->
+        <p id="error-message" style="color:red; display:none;">Please fill either Wi-Fi Setup or Bluetooth Setup!</p>
         <div>
             <p class="section-title">Wi-Fi Setup</p>
             <label for="ssid">SSID (Network Name):</label>
             <input type="text" id="ssid" name="ssid" placeholder="Enter Wi-Fi name">
-
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" placeholder="Enter Wi-Fi password">
-
             <label for="auth_type">Authentication Type:</label>
             <select id="auth_type" name="auth_type">
                 <option value="WPA">WPA</option>
                 <option value="WPA2">WPA2</option>
             </select>
         </div>
-
-        <!-- Bluetooth Setup Section -->
         <div>
             <p class="section-title">Bluetooth Setup</p>
             <label for="bluetooth_mac">Bluetooth Name Address:</label>
             <input type="text" id="bluetooth_mac" name="bluetooth_mac" placeholder="Enter Bluetooth name (optional)">
-
             <label for="bluetooth_name">Bluetooth Mac Name:</label>
             <input type="text" id="bluetooth_name" name="bluetooth_name" placeholder="Enter Printer MAC (optional)">
         </div>
-
-        <input type="submit" value="Generate QR Code">
+        <input class="btn" type="submit" value="Generate QR Code">
     </form>
 </body>
 
