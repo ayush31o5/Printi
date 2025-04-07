@@ -3,24 +3,23 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
     <title>Provide Paper to Printer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-    <h1>Provide Paper to Printer</h1>
-
-    <form action="{{ url_for('process_paper_submission') }}" method="post">
-        <label for="printer">Select Printer:</label>
-        <select name="printer" id="printer" required>
-            <option value="{{ printer }}">{{ printer }}</option>
-        </select>
-        <label for="paper_count">Number of Pages:</label>
-        <input type="number" name="paper_count" id="paper_count" required min="1">
-        <button type="submit">Proceed to Payment</button>
-    </form>
+    <div class="container">
+        <h1>Provide Paper to Printer</h1>
+        <form action="{{ url_for('process_paper_submission') }}" method="post">
+            <label for="printer">Select Printer:</label>
+            <select name="printer" id="printer" required>
+                <option value="{{ printer }}">{{ printer }}</option>
+            </select>
+            <label for="paper_count">Number of Pages:</label>
+            <input type="number" name="paper_count" id="paper_count" required min="1">
+            <button type="submit" class="btn">Proceed to Payment</button>
+        </form>
+    </div>
 </body>
 
 </html>

@@ -3,17 +3,18 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <title>Printi - Confirmation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-    <h1>Print Confirmation</h1>
-    <p>Your document has been successfully sent to the printer.</p>
-    <p>Printer: {{ printer_name }}</p>
-    <p>Number of Pages: {{ num_pages }}</p>
-    <p>Amount Paid: ₹{{ amount }}</p>
+    <div class="container">
+        <h1>Print Confirmation</h1>
+        <p>Your document has been successfully sent to the printer.</p>
+        <p>Printer: {{ printer_name }}</p>
+        <p>Number of Pages: {{ num_pages }}</p>
+        <p>Amount Paid: ₹{{ amount }}</p>
+    </div>
 </body>
 
 </html>

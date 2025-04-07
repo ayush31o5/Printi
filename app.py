@@ -28,7 +28,7 @@ def home():
 def printer_setup():
     """
     Registers a printer by saving its connection details and generating a QR code.
-    The generated QR code includes SSID, auth_type, password, and (optionally) Bluetooth MAC.
+    The generated QR code includes Wi‑Fi configuration details in the standard format.
     """
     if request.method == 'POST':
         ssid = request.form['ssid']
@@ -36,17 +36,17 @@ def printer_setup():
         auth_type = request.form['auth_type']
         bluetooth_mac = request.form.get('bluetooth_mac', '')
 
-        # Generate connection URL (which will auto-connect without extra user choice)
-        connection_url = f"http://{request.host}/connect_printer?ssid={ssid}&auth_type={auth_type}&password={password}&bluetooth_mac={bluetooth_mac}"
+        # Generate Wi‑Fi configuration string (standard format for QR codes)
+        wifi_config = f"WIFI:T:{auth_type};S:{ssid};P:{password};;"
 
-        # Generate QR code for the connection URL
+        # Generate QR code for the Wi‑Fi configuration
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
             box_size=10,
             border=4
         )
-        qr.add_data(connection_url)
+        qr.add_data(wifi_config)
         qr.make(fit=True)
         img = qr.make_image(fill='black', back_color='white')
         buffer = BytesIO()
@@ -69,26 +69,23 @@ def printer_setup():
 @app.route('/connect_printer', methods=['GET', 'POST'])
 async def connect_printer_route():
     """
-    When the QR code is scanned, this endpoint is loaded.
-    - On GET, it serves an auto‑connect page that immediately posts connection data.
-    - On POST, it automatically attempts a Wi‑Fi Direct connection.
+    Endpoint called when the QR code is scanned.
+    - On GET: serves an auto‑connect page that immediately posts connection data.
+    - On POST: attempts a Wi‑Fi Direct connection automatically.
     """
     if request.method == 'POST':
-        # Data is received as JSON from the auto_connect page.
         data = request.get_json() or {}
         ssid = data.get('ssid', '')
         auth_type = data.get('auth_type', '')
         password = data.get('password', '')
         bluetooth_mac = data.get('bluetooth_mac', '')
 
-        # For auto-connect, we assume Wi-Fi Direct (Bluetooth option can be added later)
         result = connect_to_wifi_direct(ssid, auth_type, password)
-        # Optionally, you could trigger Bluetooth if needed:
+        # Optionally, you can try a Bluetooth connection if needed:
         # if bluetooth_mac:
         #     result = await connect_to_bluetooth(bluetooth_mac)
         return jsonify(result)
     else:
-        # GET request: render the auto‑connect page with the parameters from the QR URL.
         return render_template(
             'auto_connect.html',
             ssid=request.args.get('ssid', ''),
@@ -176,5 +173,4 @@ def verify_payment():
         return "Payment verification failed", 400
 
 if __name__ == '__main__':
-    # In production, run behind a proper WSGI server (e.g., Gunicorn) with a reverse proxy (e.g., Nginx) to handle SSL.
     app.run(host='0.0.0.0', port=5000, debug=True)

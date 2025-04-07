@@ -3,59 +3,36 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{url_for('static',filename='connect.css')}}">
-
     <title>Printi - Connect to Printer</title>
-    <style>
-        #status-message {
-            padding: 10px;
-            margin-top: 20px;
-            font-size: 1.2em;
-        }
-
-        .success {
-            color: green;
-        }
-
-        .error {
-            color: red;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 
 <body>
-    <h1>Connect to Printer</h1>
-
-    <form action="{{ url_for('connect_printer') }}" method="POST">
-        <input type="hidden" name="ssid" value="{{ ssid }}">
-        <input type="hidden" name="auth_type" value="{{ auth_type }}">
-        <input type="hidden" name="password" value="{{ password }}">
-        <input type="hidden" name="bluetooth_mac" value="{{ bluetooth_mac }}">
-
-        <h2>Select Connection Method</h2>
-        <button type="submit" name="connection_type" value="wifi">Connect via Wi-Fi</button>
-        <button type="submit" name="connection_type" value="bluetooth">Connect via Bluetooth</button>
-    </form>
-
-    <hr>
-
-    <h2>Upload File to Print</h2>
-    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
-        <label for="file">Select File:</label>
-        <input type="file" name="file" id="file" required>
-        <button type="submit">Upload and Print</button>
-    </form>
-
-    <div id="status-message"></div> <!-- Status message display area -->
-
-    <hr>
-
-    <h2>Provide Paper to Printer</h2>
-    <a href="{{ url_for('provide_paper_page') }}">
-        <button>Go to Provide Paper Page</button>
-    </a>
+    <div class="container">
+        <h1>Connect to Printer</h1>
+        <form action="{{ url_for('connect_printer') }}" method="POST">
+            <input type="hidden" name="ssid" value="{{ ssid }}">
+            <input type="hidden" name="auth_type" value="{{ auth_type }}">
+            <input type="hidden" name="password" value="{{ password }}">
+            <input type="hidden" name="bluetooth_mac" value="{{ bluetooth_mac }}">
+            <h2>Select Connection Method</h2>
+            <button type="submit" name="connection_type" value="wifi">Connect via Wi-Fi</button>
+            <button type="submit" name="connection_type" value="bluetooth">Connect via Bluetooth</button>
+        </form>
+        <hr>
+        <h2>Upload File to Print</h2>
+        <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+            <label for="file">Select File:</label>
+            <input type="file" name="file" id="file" required>
+            <button type="submit">Upload and Print</button>
+        </form>
+        <div id="status-message"></div>
+        <hr>
+        <h2>Provide Paper to Printer</h2>
+        <a href="{{ url_for('provide_paper_page') }}">
+            <button>Go to Provide Paper Page</button>
+        </a>
+    </div>
 </body>
 
 </html>

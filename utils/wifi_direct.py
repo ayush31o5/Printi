@@ -7,23 +7,16 @@ from zeroconf import Zeroconf, ServiceBrowser
 
 def connect_to_wifi_direct(ssid, auth_type, password):
     """
-    Connects to a Wi-Fi Direct network using the provided SSID, auth_type, and password.
-    Note: The auth_type parameter is currently not used in the connection logic.
+    Connects to a Wi-Fi Direct network using provided SSID, auth_type, and password.
     """
     try:
         wifi = PyWiFi()
         interfaces = wifi.interfaces()
-
         if not interfaces:
             raise Exception("No Wi-Fi interfaces found. Make sure Wi-Fi is enabled.")
-
-        iface = interfaces[0]  # Select the first Wi-Fi interface
-
-        # Disconnect any existing connections
+        iface = interfaces[0]
         iface.disconnect()
         time.sleep(1)
-
-        # Set up Wi-Fi Direct profile
         profile = Profile()
         profile.ssid = ssid
         profile.auth = const.AUTH_ALG_OPEN
@@ -33,18 +26,14 @@ def connect_to_wifi_direct(ssid, auth_type, password):
             profile.akm.append(const.AKM_TYPE_NONE)
         profile.key = password if password else ''
         profile.cipher = const.CIPHER_TYPE_CCMP
-
-        # Apply the connection profile
         iface.remove_all_network_profiles()
         temp_profile = iface.add_network_profile(profile)
         iface.connect(temp_profile)
         time.sleep(10)
-
         if iface.status() == const.IFACE_CONNECTED:
             return {"status": "success", "message": "Connected to Wi-Fi Direct"}
         else:
             raise Exception("Wi-Fi Direct connection failed. Check SSID and password.")
-
     except Exception as e:
         return {"status": "failed", "error": str(e)}
 
@@ -74,12 +63,10 @@ def discover_printer_ip():
         class PrinterListener:
             def __init__(self):
                 self.ip = None
-
             def add_service(self, zeroconf, service_type, name):
                 info = zeroconf.get_service_info(service_type, name)
                 if info:
                     self.ip = socket.inet_ntoa(info.addresses[0])
-
         zc = Zeroconf()
         listener = PrinterListener()
         ServiceBrowser(zc, "_http._tcp.local.", listener)
