@@ -12,15 +12,60 @@
             padding: 20px;
             border-radius: 12px;
         }
+
+        /* Style for the printer details section */
+        .printer-details {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            display: none;
+            /* Hide by default */
+        }
+
+        .toggle-btn {
+            margin-top: 20px;
+            padding: 8px 16px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
     <h1>Scan the QR Code to Connect</h1>
     <div class="qr-container">
+        <!-- QR Code image -->
         <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Code">
+        <!-- Download link for the QR code -->
         <a class="download-btn" href="data:image/png;base64,{{ qr_base64 }}" download="qr_code.png">Download QR Code</a>
     </div>
+
+    <!-- Toggle button for printer details -->
+    <button class="toggle-btn" id="toggle-btn">Show Printer Details</button>
+
+    <!-- Printer details section -->
+    <div class="printer-details" id="printer-details">
+        <h2>Printer Details</h2>
+        <p><strong>SSID:</strong> {{ ssid }}</p>
+        <p><strong>Password:</strong> {{ password }}</p>
+        <p><strong>Authentication Type:</strong> {{ auth_type }}</p>
+        <p><strong>Bluetooth MAC:</strong> {{ bluetooth_mac }}</p>
+    </div>
+
+    <!-- JavaScript to toggle the details -->
+    <script>
+        document.getElementById('toggle-btn').addEventListener('click', function () {
+            var details = document.getElementById('printer-details');
+            if (details.style.display === 'none' || details.style.display === '') {
+                details.style.display = 'block';
+                this.textContent = 'Hide Printer Details';
+            } else {
+                details.style.display = 'none';
+                this.textContent = 'Show Printer Details';
+            }
+        });
+    </script>
 </body>
 
 </html>

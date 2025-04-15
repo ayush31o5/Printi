@@ -36,10 +36,10 @@ def printer_setup():
         auth_type = request.form['auth_type']
         bluetooth_mac = request.form.get('bluetooth_mac', '')
 
-        # Generate Wi‑Fi configuration string (standard format for QR codes)
+        # Generate Wi‑Fi configuration string
         wifi_config = f"WIFI:T:{auth_type};S:{ssid};P:{password};;"
 
-        # Generate QR code for the Wi‑Fi configuration
+        # Generate the QR code
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -53,6 +53,7 @@ def printer_setup():
         img.save(buffer, format="PNG")
         qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
+        # Save printer info (optional: store or process further)
         printer_info = {
             'ssid': ssid,
             'password': password,
@@ -62,9 +63,19 @@ def printer_setup():
         }
         add_printer(printer_info)
 
-        return render_template("qr_code.html", qr_base64=qr_base64)
+        # Pass the printer details directly to the template
+        return render_template(
+            "qr_code.html",
+            qr_base64=qr_base64,
+            ssid=ssid,
+            auth_type=auth_type,
+            password=password,
+            bluetooth_mac=bluetooth_mac
+        )
 
+    # Render the initial setup form if GET request
     return render_template('printer_setup_form.html')
+
 
 @app.route('/connect_printer', methods=['GET', 'POST'])
 async def connect_printer_route():
@@ -103,6 +114,7 @@ def upload_file():
     file = request.files['file']
     printer_name = request.form.get('printer')
     filepath = os.path.join('uploads', file.filename)
+    
     file.save(filepath)
 
     num_pages = count_pages(filepath)

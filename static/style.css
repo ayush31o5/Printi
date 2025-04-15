@@ -21,7 +21,7 @@ p {
     margin: 40px auto;
     padding: 20px;
     text-align: center;
-    background: rgba(4, 4, 4, 0.1);
+    background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(10px);
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -138,5 +138,5 @@ select:focus {
 }
 
 .section-title {
-    color: black !important;
+    color: rgb(246, 241, 241) !important;
 }
