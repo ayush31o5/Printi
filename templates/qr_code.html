@@ -13,14 +13,12 @@
             border-radius: 12px;
         }
 
-        /* Style for the printer details section */
         .printer-details {
             margin-top: 20px;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 8px;
             display: none;
-            /* Hide by default */
         }
 
         .toggle-btn {
@@ -40,10 +38,8 @@
         <!-- Download link for the QR code -->
         <a class="download-btn" href="data:image/png;base64,{{ qr_base64 }}" download="qr_code.png">Download QR Code</a>
     </div>
-
     <!-- Toggle button for printer details -->
     <button class="toggle-btn" id="toggle-btn">Show Printer Details</button>
-
     <!-- Printer details section -->
     <div class="printer-details" id="printer-details">
         <h2>Printer Details</h2>
@@ -52,7 +48,6 @@
         <p><strong>Authentication Type:</strong> {{ auth_type }}</p>
         <p><strong>Bluetooth MAC:</strong> {{ bluetooth_mac }}</p>
     </div>
-
     <!-- JavaScript to toggle the details -->
     <script>
         document.getElementById('toggle-btn').addEventListener('click', function () {

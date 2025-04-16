@@ -36,7 +36,6 @@
                     var statusDiv = document.getElementById("status");
                     if (result.status === "success") {
                         statusDiv.innerHTML = "✅ " + result.message;
-                        // After a short delay, redirect to the page where user uploads a document
                         setTimeout(function () {
                             window.location.href = "{{ url_for('provide_paper_page') }}";
                         }, 2000);
