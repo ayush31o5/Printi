@@ -17,19 +17,29 @@ def connect_to_wifi_direct(ssid, auth_type, password):
         iface = interfaces[0]
         iface.disconnect()
         time.sleep(1)
+        
         profile = Profile()
         profile.ssid = ssid
         profile.auth = const.AUTH_ALG_OPEN
-        if password:
+        
+        # Use the auth_type parameter to determine the AKM and key.
+        if auth_type.upper() == "WPA2":
+            if not password:
+                raise Exception("Password is required for WPA2 authentication.")
             profile.akm.append(const.AKM_TYPE_WPA2PSK)
-        else:
+            profile.key = password
+        elif auth_type.upper() == "OPEN":
             profile.akm.append(const.AKM_TYPE_NONE)
-        profile.key = password if password else ''
+            profile.key = ''
+        else:
+            raise Exception(f"Unsupported auth_type: {auth_type}")
+            
         profile.cipher = const.CIPHER_TYPE_CCMP
+
         iface.remove_all_network_profiles()
         temp_profile = iface.add_network_profile(profile)
         iface.connect(temp_profile)
-        time.sleep(10)
+        time.sleep(10)  # Allow time for connection attempt
         if iface.status() == const.IFACE_CONNECTED:
             return {"status": "success", "message": "Connected to Wi-Fi Direct"}
         else:
@@ -63,10 +73,14 @@ def discover_printer_ip():
         class PrinterListener:
             def __init__(self):
                 self.ip = None
+
             def add_service(self, zeroconf, service_type, name):
                 info = zeroconf.get_service_info(service_type, name)
-                if info:
+                if info and info.addresses:
                     self.ip = socket.inet_ntoa(info.addresses[0])
+                    
+            # Optionally, you can add update_service and remove_service methods if needed.
+            
         zc = Zeroconf()
         listener = PrinterListener()
         ServiceBrowser(zc, "_http._tcp.local.", listener)
