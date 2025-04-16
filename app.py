@@ -81,20 +81,27 @@ def printer_setup():
 async def connect_printer_route():
     """
     Endpoint called when the QR code is scanned.
-    - On GET: serves an auto‑connect page that immediately posts connection data.
+    - On GET: serves an auto‑connect page with hidden form that auto‑submits.
     - On POST: attempts a Wi‑Fi Direct connection automatically.
     """
     if request.method == 'POST':
-        data = request.get_json() or {}
+        # Support both JSON and form submission
+        if request.is_json:
+            data = request.get_json() or {}
+        else:
+            data = request.form
         ssid = data.get('ssid', '')
         auth_type = data.get('auth_type', '')
         password = data.get('password', '')
         bluetooth_mac = data.get('bluetooth_mac', '')
 
         result = connect_to_wifi_direct(ssid, auth_type, password)
-        # Optionally, you can try a Bluetooth connection if needed:
-        # if bluetooth_mac:
-        #     result = await connect_to_bluetooth(bluetooth_mac)
+        
+        if result.get("status") == "success":
+            # Here you would set the printer that was used. This could be the SSID,
+            # the bluetooth_mac, or any unique identifier for the printer.
+            # For example, if your printer info includes a name, store it:
+            session['connected_printer'] = ssid  # or use a proper printer name
         return jsonify(result)
     else:
         return render_template(
@@ -105,42 +112,53 @@ async def connect_printer_route():
             bluetooth_mac=request.args.get('bluetooth_mac', '')
         )
 
+
 @app.route('/provide_paper')
 def provide_paper_page():
-    return render_template('provide_paper.html')
-
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    file = request.files['file']
-    printer_name = request.form.get('printer')
-    filepath = os.path.join('uploads', file.filename)
+    connected_printer = session.get('connected_printer')
+    if not connected_printer:
+        # If no printer is connected, redirect to the home page or show an error
+        return redirect(url_for('home'))
+    return render_template('provide_paper.html', printer=connected_printer)
+# @app.route('/upload', methods=['POST'])
+# def upload_file():
+#     file = request.files['file']
+#     printer_name = request.form.get('printer')
+#     filepath = os.path.join('uploads', file.filename)
     
-    file.save(filepath)
+#     file.save(filepath)
 
-    num_pages = count_pages(filepath)
-    amount = num_pages * 100  # Example pricing logic
+#     num_pages = count_pages(filepath)
+#     amount = num_pages * 100  # Example pricing logic
 
-    order = razorpay_client.order.create({'amount': amount, 'currency': 'INR', 'payment_capture': '1'})
+#     order = razorpay_client.order.create({'amount': amount, 'currency': 'INR', 'payment_capture': '1'})
 
-    session['order_data'] = {
-        'filepath': filepath,
-        'printer_name': printer_name,
-        'num_pages': num_pages,
-        'amount': amount,
-        'order_id': order['id']
-    }
+#     session['order_data'] = {
+#         'filepath': filepath,
+#         'printer_name': printer_name,
+#         'num_pages': num_pages,
+#         'amount': amount,
+#         'order_id': order['id']
+#     }
 
-    return render_template('payment.html', amount=amount, razorpay_key=os.getenv('RAZORPAY_KEY'))
+#     return render_template('payment.html', amount=amount, razorpay_key=os.getenv('RAZORPAY_KEY'))
 
 @app.route('/process_paper_submission', methods=['POST'])
 def process_paper_submission():
-    printer = request.form.get('printer')
+    # Either get the printer from the form or the session
+    printer = request.form.get('printer') or session.get('connected_printer')
     paper_count = int(request.form.get('paper_count'))
-
+    
+    # Get other printing options
+    print_option = request.form.get('print_option')
+    paper_size = request.form.get('paper_size')
+    color_option = request.form.get('color_option')
+    
     if not printer or paper_count <= 0:
         return jsonify({"status": "failed", "error": "Invalid printer or paper count"}), 400
 
-    amount = paper_count * 100
+    # Pricing logic — adjust multipliers based on options as needed
+    amount = paper_count * 100  # Example logic
 
     order = razorpay_client.order.create({
         'amount': amount,
@@ -151,11 +169,18 @@ def process_paper_submission():
     session['order_data'] = {
         'printer_name': printer,
         'num_pages': paper_count,
+        'print_option': print_option,
+        'paper_size': paper_size,
+        'color_option': color_option,
         'amount': amount,
         'order_id': order['id']
     }
 
-    return render_template('payment.html', amount=amount, razorpay_key=os.getenv('RAZORPAY_KEY'))
+    return render_template(
+        'payment.html',
+        amount=amount,
+        razorpay_key=os.getenv('RAZORPAY_KEY')
+    )
 
 @app.route('/verify', methods=['POST'])
 def verify_payment():

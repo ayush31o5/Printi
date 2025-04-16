@@ -10,13 +10,33 @@
 <body>
     <div class="container">
         <h1>Provide Paper to Printer</h1>
+        <p>Connected Printer: <strong>{{ printer }}</strong></p>
         <form action="{{ url_for('process_paper_submission') }}" method="post">
-            <label for="printer">Select Printer:</label>
-            <select name="printer" id="printer" required>
-                <option value="{{ printer }}">{{ printer }}</option>
-            </select>
+            <!-- Include printer details as a hidden field if desired -->
+            <input type="hidden" name="printer" value="{{ printer }}">
+
             <label for="paper_count">Number of Pages:</label>
             <input type="number" name="paper_count" id="paper_count" required min="1">
+
+            <!-- Printing Options -->
+            <label for="print_option">Print Option:</label>
+            <select name="print_option" id="print_option" required>
+                <option value="single">Single-Sided</option>
+                <option value="double">Double-Sided</option>
+            </select>
+
+            <label for="paper_size">Paper Size:</label>
+            <select name="paper_size" id="paper_size" required>
+                <option value="A4">A4</option>
+                <option value="A3">A3</option>
+            </select>
+
+            <label for="color_option">Color Option:</label>
+            <select name="color_option" id="color_option" required>
+                <option value="colored">Colored</option>
+                <option value="bw">Black & White</option>
+            </select>
+
             <button type="submit" class="btn">Proceed to Payment</button>
         </form>
     </div>
