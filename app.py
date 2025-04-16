@@ -39,7 +39,7 @@ def printer_setup():
         bluetooth_mac = request.form.get('bluetooth_mac', '')
 
         # Build a URL to the connect_printer route with query parameters
-        connect_url = url_for('connect_printer_route', _external=True,
+        connect_url = url_for('connect_printer', _external=True,
                               ssid=ssid, auth_type=auth_type, password=password, bluetooth_mac=bluetooth_mac)
 
         # Generate the QR code with the URL as data
