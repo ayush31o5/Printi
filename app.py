@@ -67,7 +67,7 @@ def printer_setup():
     return render_template('printer_setup_form.html')
 
 @app.route('/connect_printer', methods=['GET', 'POST'])
-async def connect_printer_route():
+async def connect_printer():
     """
     Endpoint called when the QR code is scanned.
     - On GET: serves an auto‑connect page that immediately posts connection data.
