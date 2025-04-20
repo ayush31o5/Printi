@@ -3,42 +3,41 @@ import platform
 import subprocess
 from bleak import BleakClient
 
+# utils/printer_utils.py
+import os
+import platform
+import subprocess
+import socket
+
 def get_printers():
     system = platform.system()
     if system == "Windows":
         import win32print
-        printers = [printer[2] for printer in win32print.EnumPrinters(2)]
+        return [printer[2] for printer in win32print.EnumPrinters(2)]
     elif system == "Linux":
-        printers = subprocess.check_output(["lpstat", "-p"]).decode().splitlines()
-        printers = [line.split(' ')[1] for line in printers if "printer" in line]
+        lines = subprocess.check_output(["lpstat", "-p"]).decode().splitlines()
+        return [line.split(" ")[1] for line in lines if "printer" in line]
     else:
-        raise NotImplementedError("Printing is not supported on this platform.")
-    return printers
+        raise NotImplementedError("Printing not supported on this platform.")
 
-def send_to_printer(filepath, printer_name):
+def send_raw_print(filepath, printer_ip, port=9100):
     """
-    Sends a file to the specified printer.
-    Supports Windows and Linux.
+    Sends the raw file bytes over JetDirect (TCP/9100).
     """
-    system = platform.system()
-    if system == "Windows":
-        try:
-            import win32print, win32api
-        except ImportError as e:
-            raise ImportError("win32print and win32api are required on Windows. Please install pywin32.") from e
-        try:
-            win32print.SetDefaultPrinter(printer_name)
-            win32api.ShellExecute(0, "print", filepath, None, ".", 0)
-        except Exception as e:
-            raise RuntimeError(f"Failed to print document on Windows: {e}")
-    elif system == "Linux":
-        try:
-            command = ['lp', '-d', printer_name, filepath]
-            subprocess.run(command, check=True)
-        except Exception as e:
-            raise RuntimeError(f"Failed to print document on Linux: {e}")
-    else:
-        raise Exception("Unsupported platform for printing.")
+    try:
+        with open(filepath, "rb") as f:
+            data = f.read()
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((printer_ip, port))
+            s.sendall(data)
+
+        return {"status": "success", "message": f"Sent {os.path.basename(filepath)} to {printer_ip}:{port}"}
+    except Exception as e:
+        return {"status": "failed", "error": str(e)}
+
+# (keep any Bluetooth‐printing helpers here if you need them)
+
 
 async def connect_bluetooth_printer(mac_address):
     """

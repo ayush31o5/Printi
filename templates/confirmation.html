@@ -8,13 +8,15 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1>Print Confirmation</h1>
-        <p>Your document has been successfully sent to the printer.</p>
-        <p>Printer: {{ printer_name }}</p>
-        <p>Number of Pages: {{ num_pages }}</p>
-        <p>Amount Paid: ₹{{ amount }}</p>
-    </div>
+    <!-- inside confirmation.html -->
+    <p>
+        {% if send_result.status == "success" %}
+        ✅ {{ send_result.message }}
+        {% else %}
+        ❌ Printing failed: {{ send_result.error }}
+        {% endif %}
+    </p>
+
 </body>
 
 </html>
