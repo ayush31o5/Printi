@@ -146,7 +146,7 @@ def process_paper_submission():
     return render_template('payment.html', amount=amount, razorpay_key=os.getenv('RAZORPAY_KEY'))
 
 @app.route('/verify', methods=['POST'])
-def verify_payment():
+def verify():
     order_data = session.get('order_data')
     if not order_data:
         return redirect(url_for('home'))
