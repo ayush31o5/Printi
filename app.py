@@ -1,25 +1,23 @@
-# app.py
-
 import os
 import hmac
 import hashlib
 import base64
-import qrcode
 from io import BytesIO
 from dotenv import load_dotenv
 
 from flask import (
     Flask, render_template, request,
-    redirect, url_for, session, jsonify
+    redirect, url_for, session, jsonify,
+    send_from_directory
 )
 import razorpay
+import qrcode
 
 from utils.wifi_direct import (
-    connect_to_wifi_direct,
-    discover_printer_ip,
+    generate_wifi_qr,
+    discover_printer_ip
 )
 from utils.count_pages import count_pages
-from utils.printer_utils import send_raw_print
 from database import add_printer
 
 load_dotenv()
@@ -34,11 +32,9 @@ razorpay_client = razorpay.Client(
     )
 )
 
-
 @app.route("/")
 def home():
     return render_template("home.html")
-
 
 @app.route("/add_printer", methods=["GET", "POST"])
 def printer_setup():
@@ -48,7 +44,6 @@ def printer_setup():
         auth_type     = request.form["auth_type"]
         bluetooth_mac = request.form.get("bluetooth_mac", "")
 
-        # Persist printer info
         printer_info = {
             "ssid": ssid,
             "password": password,
@@ -57,78 +52,20 @@ def printer_setup():
         }
         add_printer(printer_info)
 
-        # Build the external URL for auto‑connect
-        connect_url = url_for(
-            "connect_printer",
-            ssid=ssid,
-            auth_type=auth_type,
-            password=password,
-            bluetooth_mac=bluetooth_mac,
-            _external=True
-        )
-
-        # Generate QR code for that URL
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(connect_url)
-        qr.make(fit=True)
-        img = qr.make_image(fill="black", back_color="white")
-        buf = BytesIO()
-        img.save(buf, format="PNG")
-        qr_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        qr_base64 = generate_wifi_qr(ssid, auth_type, password)
 
         return render_template(
             "qr_code.html",
             qr_base64=qr_base64,
-            connect_url=connect_url,
+            redirect_url=url_for("connected"),
             **printer_info
         )
 
     return render_template("printer_setup_form.html")
 
-
-@app.route("/connect_printer", methods=["GET", "POST"])
-async def connect_printer():
-    if request.method == "POST":
-        data = request.get_json() or {}
-        ssid      = data.get("ssid", "")
-        auth_type = data.get("auth_type", "")
-        password  = data.get("password", "")
-
-        # 1) Attempt Wi‑Fi Direct connection
-        result = connect_to_wifi_direct(ssid, auth_type, password)
-
-        # 2) If successful, discover printer IP
-        if result.get("status") == "success":
-            printer_ip = discover_printer_ip()
-            if printer_ip:
-                result["printer_ip"] = printer_ip
-            else:
-                result = {
-                    "status": "failed",
-                    "error": "Could not discover printer IP."
-                }
-
-        return jsonify(result)
-
-    # GET: serve the auto‑connect spinner
-    return render_template(
-        "auto_connect.html",
-        ssid=request.args.get("ssid", ""),
-        auth_type=request.args.get("auth_type", ""),
-        password=request.args.get("password", ""),
-        bluetooth_mac=request.args.get("bluetooth_mac", ""),
-    )
-
-
-@app.route("/provide_paper")
-def provide_paper_page():
-    return render_template("provide_paper.html")
-
+@app.route("/connected")
+def connected():
+    return render_template("connected.html")
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
@@ -139,7 +76,7 @@ def upload_file():
     file.save(filepath)
 
     num_pages = count_pages(filepath)
-    amount = num_pages * 100  # ₹100 per page
+    amount = num_pages * 100
 
     order = razorpay_client.order.create({
         "amount": amount,
@@ -161,43 +98,6 @@ def upload_file():
         razorpay_key=os.getenv("RAZORPAY_KEY")
     )
 
-
-@app.route("/process_paper_submission", methods=["POST"])
-def process_paper_submission():
-    printer      = request.form.get("printer", "")
-    paper_count  = int(request.form.get("paper_count", "0"))
-
-    if not printer or paper_count <= 0:
-        return jsonify({
-            "status": "failed",
-            "error": "Invalid printer or paper count"
-        }), 400
-
-    amount = paper_count * 100
-    order = razorpay_client.order.create({
-        "amount": amount,
-        "currency": "INR",
-        "payment_capture": "1",
-    })
-
-    # Preserve original file path from session
-    filepath = session.get("order_data", {}).get("filepath", "")
-
-    session["order_data"] = {
-        "filepath": filepath,
-        "printer_name": printer,
-        "num_pages": paper_count,
-        "amount": amount,
-        "order_id": order["id"],
-    }
-
-    return render_template(
-        "payment.html",
-        amount=amount,
-        razorpay_key=os.getenv("RAZORPAY_KEY")
-    )
-
-
 @app.route("/verify", methods=["POST"])
 def verify():
     order_data = session.get("order_data")
@@ -217,27 +117,22 @@ def verify():
     if generated_signature != signature:
         return "Payment verification failed", 400
 
-    # Send to printer
-    printer_ip = discover_printer_ip()
-    if not printer_ip:
-        return "Printer IP not found; cannot send job.", 500
-
-    send_result = send_raw_print(
-        order_data["filepath"],
-        printer_ip
-    )
+    filename = os.path.basename(order_data["filepath"])
+    download_url = url_for("download_file", filename=filename, _external=True)
 
     return render_template(
         "confirmation.html",
         printer_name=order_data["printer_name"],
         num_pages=order_data["num_pages"],
         amount=order_data["amount"],
-        send_result=send_result
+        download_url=download_url
     )
 
+@app.route("/download/<filename>")
+def download_file(filename):
+    return send_from_directory("uploads", filename, as_attachment=True)
 
 if __name__ == "__main__":
-    # Run with HTTPS so that QR-scanned clients using HTTPS won't error
     app.run(
         host="0.0.0.0",
         port=5000,
