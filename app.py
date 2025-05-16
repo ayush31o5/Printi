@@ -11,10 +11,10 @@ from flask import (
     send_from_directory
 )
 import razorpay
-import qrcode
 
 from utils.wifi_direct import (
     generate_wifi_qr,
+    generate_url_qr,
     discover_printer_ip
 )
 from utils.count_pages import count_pages
@@ -39,9 +39,9 @@ def home():
 @app.route("/add_printer", methods=["GET", "POST"])
 def printer_setup():
     if request.method == "POST":
-        ssid          = request.form["ssid"]
-        password      = request.form.get("password", "")
-        auth_type     = request.form["auth_type"]
+        ssid = request.form["ssid"]
+        password = request.form.get("password", "")
+        auth_type = request.form["auth_type"]
         bluetooth_mac = request.form.get("bluetooth_mac", "")
 
         printer_info = {
@@ -53,10 +53,12 @@ def printer_setup():
         add_printer(printer_info)
 
         qr_base64 = generate_wifi_qr(ssid, auth_type, password)
+        url_qr_base64 = generate_url_qr(url_for("connected", _external=True))
 
         return render_template(
             "qr_code.html",
             qr_base64=qr_base64,
+            url_qr_base64=url_qr_base64,
             redirect_url=url_for("connected"),
             **printer_info
         )
@@ -67,6 +69,10 @@ def printer_setup():
 def connected():
     return render_template("connected.html")
 
+@app.route("/upload_page")
+def upload_page():
+    return render_template("upload.html")
+
 @app.route("/upload", methods=["POST"])
 def upload_file():
     file = request.files["file"]
@@ -76,7 +82,7 @@ def upload_file():
     file.save(filepath)
 
     num_pages = count_pages(filepath)
-    amount = num_pages * 100
+    amount = num_pages * 100  # ₹1 per page × 100 for paisa
 
     order = razorpay_client.order.create({
         "amount": amount,
@@ -105,8 +111,8 @@ def verify():
         return redirect(url_for("home"))
 
     payment_id = request.form.get("razorpay_payment_id", "")
-    order_id   = order_data["order_id"]
-    signature  = request.form.get("razorpay_signature", "")
+    order_id = order_data["order_id"]
+    signature = request.form.get("razorpay_signature", "")
 
     generated_signature = hmac.new(
         os.getenv("RAZORPAY_SECRET").encode(),
